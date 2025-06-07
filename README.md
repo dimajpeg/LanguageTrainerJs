@@ -33,7 +33,7 @@
 3.  Переконайтеся, що `API_URL` у `src/store/wordStore.ts` вказує на ваш бекенд.
 4.  `pnpm run dev` (зазвичай на `http://localhost:3001`)
 
-
+## 📸 Скріншоти
 ![localhost_3001_ (1)](https://github.com/user-attachments/assets/6d7d01d1-9109-4313-b777-4ff3c0460728)
 ![localhost_3001_ (2)](https://github.com/user-attachments/assets/fa6040e4-94ec-44ed-9ced-7bf9be0e07b6)
 
