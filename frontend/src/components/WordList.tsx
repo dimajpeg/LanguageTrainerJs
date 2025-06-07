@@ -1,7 +1,7 @@
 // frontend/src/components/WordList.tsx
 'use client';
 
-import { useWordStore } from '../store/wordStore';
+import { useWordStore } from '../store/wordStore'; // Шлях до стору
 
 export function WordList() {
   const words = useWordStore((state) => state.words);
@@ -25,7 +25,7 @@ export function WordList() {
               <p className="text-sm text-slate-400">{word.translatedText}</p>
             </div>
             <button
-              onClick={() => removeWord(word.id)}
+              onClick={async () => await removeWord(word.id)}
               className="mt-3 md:mt-0 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition duration-150 ease-in-out"
             >
               Видалити

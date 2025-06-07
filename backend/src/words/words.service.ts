@@ -1,8 +1,11 @@
 // backend/src/words/words.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid'; // Для генерації ID
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WordEntity } from './word.entity'; // Наша сутність
+// import { v4 as uuidv4 } from 'uuid'; // uuidv4 більше не потрібен тут, ID генерує БД
 
-// Визначимо інтерфейс для слова, схожий на той, що на фронтенді
+// Інтерфейс Word нам все ще може бути корисний для типізації, хоча TypeORM працює з WordEntity
 export interface Word {
   id: string;
   originalText: string;
@@ -10,8 +13,6 @@ export interface Word {
   createdAt: Date;
 }
 
-// Створимо DTO (Data Transfer Object) для створення нового слова
-// Це гарна практика для валідації вхідних даних (ми додамо валідацію пізніше)
 export class CreateWordDto {
   originalText: string;
   translatedText: string;
@@ -19,43 +20,32 @@ export class CreateWordDto {
 
 @Injectable()
 export class WordsService {
-  // Поки що зберігаємо слова просто в масиві в пам'яті
-  private words: Word[] = [
-    // Декілька слів для прикладу, щоб одразу щось було
-    {
-      id: uuidv4(),
-      originalText: 'apple',
-      translatedText: 'яблуко',
-      createdAt: new Date(),
-    },
-    {
-      id: uuidv4(),
-      originalText: 'book',
-      translatedText: 'книга',
-      createdAt: new Date(),
-    },
-  ];
+  // Ін'єктуємо репозиторій для WordEntity
+  constructor(
+    @InjectRepository(WordEntity)
+    private wordsRepository: Repository<WordEntity>,
+  ) {}
 
-  findAll(): Word[] {
-    return this.words;
+  async findAll(): Promise<WordEntity[]> {
+    return this.wordsRepository.find(); // Метод find() з TypeORM для отримання всіх записів
   }
 
-  create(createWordDto: CreateWordDto): Word {
-    const newWord: Word = {
-      id: uuidv4(), // Генеруємо новий ID
-      ...createWordDto,
-      createdAt: new Date(),
-    };
-    this.words.push(newWord);
-    return newWord;
+  async create(createWordDto: CreateWordDto): Promise<WordEntity> {
+    // Створюємо новий екземпляр сутності
+    const newWord = this.wordsRepository.create(createWordDto);
+    // createdAt буде встановлено автоматично завдяки @CreateDateColumn
+    // id буде згенеровано автоматично базою даних
+    return this.wordsRepository.save(newWord); // Метод save() для збереження в БД
   }
 
-  remove(id: string): { message: string } {
-    const wordIndex = this.words.findIndex((word) => word.id === id);
-    if (wordIndex === -1) {
+  async remove(id: string): Promise<{ message: string }> {
+    // Метод delete() повертає результат видалення (кількість видалених рядків)
+    const result = await this.wordsRepository.delete(id);
+
+    if (result.affected === 0) {
+      // Якщо нічого не було видалено, значить, запис з таким ID не знайдено
       throw new NotFoundException(`Word with ID "${id}" not found`);
     }
-    this.words.splice(wordIndex, 1);
     return { message: `Word with ID "${id}" successfully deleted` };
   }
 }

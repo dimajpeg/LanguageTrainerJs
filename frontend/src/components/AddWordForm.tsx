@@ -1,23 +1,27 @@
 // frontend/src/components/AddWordForm.tsx
-'use client'; // Обов'язково для компонентів з хуками
+'use client';
 
 import { useState } from 'react';
-import { useWordStore } from '../store/wordStore';
+import { useWordStore } from '../store/wordStore'; // Шлях до стору
 
 export function AddWordForm() {
   const [original, setOriginal] = useState('');
   const [translated, setTranslated] = useState('');
   const addWord = useWordStore((state) => state.addWord);
+  const isLoading = useWordStore((state) => state.isLoading);
+  const currentError = useWordStore((state) => state.error);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!original.trim() || !translated.trim()) {
       alert('Будь ласка, заповніть обидва поля.');
       return;
     }
-    addWord(original, translated);
-    setOriginal('');
-    setTranslated('');
+    const success = await addWord(original, translated);
+    if (success) {
+      setOriginal('');
+      setTranslated('');
+    }
   };
 
   return (
@@ -53,10 +57,12 @@ export function AddWordForm() {
       </div>
       <button
         type="submit"
-        className="w-full md:w-auto px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow-md transition duration-150 ease-in-out"
+        disabled={isLoading}
+        className="w-full md:w-auto px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Додати слово
+        {isLoading ? 'Додавання...' : 'Додати слово'}
       </button>
+      {currentError && <p className="mt-2 text-sm text-red-500">{currentError}</p>}
     </form>
   );
 }

@@ -9,30 +9,31 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { WordsService, CreateWordDto, Word } from './words.service'; // Імпортуємо також DTO та інтерфейс
+// Інтерфейс Word тут вже не потрібен, будемо використовувати WordEntity
+import { WordsService, CreateWordDto } from './words.service';
+import { WordEntity } from './word.entity'; // Імпортуємо WordEntity
 
-@Controller('words') // Усі запити до цього контролера будуть починатися з /words
+@Controller('words')
 export class WordsController {
   constructor(private readonly wordsService: WordsService) {}
 
-  @Get() // Обробляє GET-запити на /words
-  findAll(): Word[] {
+  @Get()
+  // Вказуємо, що метод повертає Promise, який розв'яжеться в масив WordEntity
+  async findAll(): Promise<WordEntity[]> {
     return this.wordsService.findAll();
   }
 
-  @Post() // Обробляє POST-запити на /words
-  @HttpCode(HttpStatus.CREATED) // Встановлюємо статус відповіді 201 Created
-  create(@Body() createWordDto: CreateWordDto): Word {
-    // @Body() автоматично візьме дані з тіла запиту
-    // і NestJS спробує перетворити їх на CreateWordDto
-    // (пізніше ми додамо валідацію)
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  // Вказуємо, що метод повертає Promise, який розв'яжеться в WordEntity
+  async create(@Body() createWordDto: CreateWordDto): Promise<WordEntity> {
     return this.wordsService.create(createWordDto);
   }
 
-  @Delete(':id') // Обробляє DELETE-запити на /words/some-id
-  @HttpCode(HttpStatus.OK) // Можна також HttpStatus.NO_CONTENT (204), якщо нічого не повертати
-  remove(@Param('id') id: string): { message: string } {
-    // @Param('id') бере параметр 'id' з URL
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  // Вказуємо, що метод повертає Promise, який розв'яжеться в об'єкт з повідомленням
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.wordsService.remove(id);
   }
 }
